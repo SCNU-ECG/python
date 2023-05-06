@@ -10,13 +10,23 @@ from Pan_Tompkins import fs
 
 mwin = [[], [], [], [], [], [], [], [], [], [], [], []]
 bpass = [[], [], [], [], [], [], [], [], [], [], [], []]
+ecg1 = [[], [], [], [], [], [], [], [], [], [], [], []]
+ecg2 = [[], [], [], [], [], [], [], [], [], [], [], []]
+ecg3 = [[], [], [], [], [], [], [], [], [], [], [], []]
+ecg4 = [[], [], [], [], [], [], [], [], [], [], [], []]
 
-global xfrom ;  xfrom = 4000        #绘图的开始位置
+global xfrom ;  xfrom = 0        #绘图的开始位置
 global xend ;   xend = 6000         #绘图的结束位置
 
 SG_window = 60  #SG滤波缓存大小
 SG_k = 6        #SG拟合系数
 
+#定义基线漂移函数
+t1 = int(0.2*500)
+t2 = int(0.6*500)
+
+#R峰绘制线宽
+ld = 0.7
 
 '''函数说明：
     参数：  File_type:从abcd中对应四种不同类型文件
@@ -50,6 +60,8 @@ def data_process(File_type, File_num):
     for i in range(0, len(bpass)):
         data_array[i] = pt.band_pass_filter(data_array[i])
 
+#对数据进行基线漂移处理
+    data_array = deal_base_line(data_array)
     file = sheet[File_num]
 
     return  file,data_array
@@ -71,7 +83,7 @@ def data_DEO(File, data_array, Channel_num):
     for i in range(0,Channel_num):#导联数据范围
         y = data_array[i]   #取出某导联i处数据
         plt.subplot(int(row/2),2,i+1)
-        plt.plot(y, linewidth = 1)
+        plt.plot(y, linewidth = ld)
         plt.title(File + '  channel %d ' %(i+1) + ST_type)
         plt.subplots_adjust(hspace = 1)     #设置每个图像之间的间距
         plt.xlim(xfrom,xend)                    #设置x的显示范围
@@ -96,6 +108,7 @@ def Butter_band_pass(unfiltered_ecg_signal, fs):
     filtered_signal = signal.sosfilt(coeff, unfiltered_ecg_signal) 
     return filtered_signal
 
+
 #绘制寻找并R峰函数
 def plot_R_peak(File_type, File_num, Channel):
     __file_name__, data = data_process(File_type, File_num)#获取文件名和文件12导联数据
@@ -107,6 +120,22 @@ def plot_R_peak(File_type, File_num, Channel):
         result = result[result > 0]
         plt.subplot(6,2,i+1)
         # Plotting the R peak locations in ECG signal
-        plt.plot(data[i], linewidth = 1)        
+        plt.plot(data[i], linewidth = ld)        
         plt.scatter(result, data[i][result.astype('int64')], color = 'red', s = 50, marker= '*')
         plt.xlim(xfrom, xend)
+
+def normalize(data):
+   # data = data.astype('float')
+    mx = np.max(data,axis=0).astype(np.float64)
+    mn = np.min(data,axis=0).astype(np.float64)
+    return np.true_divide(data-mn,mx-mn,out=np.zeros_like(data-mn),where=(mx-mn)!=0)
+
+def deal_base_line(data_array):
+    for i in range(0,12):
+        ecg1[i] = data_array[i]
+        ecg1[i] = normalize(ecg1[i])
+        ecg2[i] = signal.medfilt(ecg1[i],t1+1)
+        ecg3[i] = signal.medfilt(ecg2[i],t2+1)
+        ecg4[i] = ecg1[i] - ecg3[i]
+
+    return ecg4

@@ -4,18 +4,16 @@ from scipy import signal
 import Pan_Tompkins as pt
 import numpy as np
 
+
 a = 'STD'; b = 'STE'; c = 'Others'; d = 'DE'
 #定义二维数组，存放12导联数据
-array = [[], [], [], [], [], [], [], [], [], [], [], []]
-index = 150
+
+index = 17
+
 
 #输出R峰处理的图像
 pplt.plot_R_peak(a, index, 12)
 
-
-'''
-
-'''
 #输出原信号基本处理的图像
 plt.figure(2)
 pplt.plot_DEO(a, index, 12)
