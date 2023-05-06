@@ -6,10 +6,18 @@ from Get_file_name import Get_type
 from scipy import signal        #导入滤波器的库
 import Pan_Tompkins as pt
 from scipy import signal
+from Pan_Tompkins import fs
 
+mwin = [[], [], [], [], [], [], [], [], [], [], [], []]
 bpass = [[], [], [], [], [], [], [], [], [], [], [], []]
+
 global xfrom ;  xfrom = 4000        #绘图的开始位置
 global xend ;   xend = 6000         #绘图的结束位置
+
+SG_window = 60  #SG滤波缓存大小
+SG_k = 6        #SG拟合系数
+
+
 '''函数说明：
     参数：  File_type:从abcd中对应四种不同类型文件
             File_num:某一种类型的文件中第num个文件
@@ -19,7 +27,7 @@ global xend ;   xend = 6000         #绘图的结束位置
 使用改函数，进行文件数据处理并绘图
 '''
 
-def data_process(File_type, File_num, SG_window, SG_k):
+def data_process(File_type, File_num):
     '''
     使用该函数对文件类型为File_type, 第File_num个文件进行数据处理
     处理为SG滤波器平滑处理
@@ -33,8 +41,6 @@ def data_process(File_type, File_num, SG_window, SG_k):
 
     data_array =(data_mat['ecg']) #将数据中的ecg数据12导联导出
 
-    for i in range(0, len(bpass)):
-        data_array[i] = pt.band_pass_filter(data_array[i])
     #使用Savitzky-Golay 滤波器实现曲线平滑
     # k值6对大，越接近真实曲线，越小越平滑。
     #window_length值50为数据缓存长度，越小越贴近原曲线，越大越平滑
@@ -43,6 +49,7 @@ def data_process(File_type, File_num, SG_window, SG_k):
         
     for i in range(0, len(bpass)):
         data_array[i] = pt.band_pass_filter(data_array[i])
+
     file = sheet[File_num]
 
     return  file,data_array
@@ -71,13 +78,13 @@ def data_DEO(File, data_array, Channel_num):
 
 
 
-def plot_DEO(File_type, File_num, Channel, SG_window, SG_k):
+def plot_DEO(File_type, File_num, Channel):
     '''
     使用该函数进行绘图，结合data_process和data_DEO形成完整绘制，调用时只需要传参就好
     使用带通滤波对每个导联数据进行处理
     
     '''
-    name, bpass = data_process(File_type, File_num, SG_window, SG_k)
+    name, bpass = data_process(File_type, File_num)
     data_DEO(name, bpass, Channel)
 
 #巴沃特斯滤波器，暂时用不到
@@ -89,3 +96,17 @@ def Butter_band_pass(unfiltered_ecg_signal, fs):
     filtered_signal = signal.sosfilt(coeff, unfiltered_ecg_signal) 
     return filtered_signal
 
+#绘制寻找并R峰函数
+def plot_R_peak(File_type, File_num, Channel):
+    __file_name__, data = data_process(File_type, File_num)#获取文件名和文件12导联数据
+    for i in range(0, Channel):
+        mwin[i] = pt.solve(data[i])
+        hr = pt.heart_rate(data[i], fs, mwin[i])
+        result = hr.find_r_peaks()
+        result = np.array(result)
+        result = result[result > 0]
+        plt.subplot(6,2,i+1)
+        # Plotting the R peak locations in ECG signal
+        plt.plot(data[i], linewidth = 1)        
+        plt.scatter(result, data[i][result.astype('int64')], color = 'red', s = 50, marker= '*')
+        plt.xlim(xfrom, xend)
