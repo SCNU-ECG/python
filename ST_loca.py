@@ -21,19 +21,21 @@ def basic_line_st(File_type, File_num, daolian):
     ST_line = 0
 
     data , loca = pplt.get_R_loca(File_type, File_num)
-    for i in range(3):
+    for i in range(3):                      #取中间的R峰算起往后，共3个R峰
         num_R = loca[(int(len(loca)/2)) + i]  #中间的R峰的位置
-
+        
+        #确定基线以及ST段的开始位置
         QQ_start = num_R - R_QQ_span
         ST_start = num_R + R_ST_span
 
-
+        #根据设定的采样数从开始进行数据累加
         for i in range(0, QQ_span):
             Q_line = Q_line + data[QQ_start + i]
 
         for i in range(0, ST_span):
             ST_line = ST_line + data[ST_start + i]
-
+    
+    #3个R峰前后采集到的数据进行平均计算
     Q_line = Q_line/(QQ_span*3)    
     ST_line = ST_line/(ST_span*3)
 
