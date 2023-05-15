@@ -8,6 +8,7 @@ import Pan_Tompkins as pt
 from scipy import signal
 from Pan_Tompkins import fs
 
+
 mwin = [[], [], [], [], [], [], [], [], [], [], [], []]
 bpass = [[], [], [], [], [], [], [], [], [], [], [], []]
 ecg1 = [[], [], [], [], [], [], [], [], [], [], [], []]
@@ -15,10 +16,12 @@ ecg2 = [[], [], [], [], [], [], [], [], [], [], [], []]
 ecg3 = [[], [], [], [], [], [], [], [], [], [], [], []]
 ecg4 = [[], [], [], [], [], [], [], [], [], [], [], []]
 
-global xfrom ;  xfrom = 0        #绘图的开始位置
-global xend ;   xend = 6000         #绘图的结束位置
+global xfrom   
+global xend    
 
-SG_window = 60  #SG滤波缓存大小
+global daolian
+
+SG_window = 40  #SG滤波缓存大小
 SG_k = 6        #SG拟合系数
 
 #定义基线漂移函数
@@ -57,11 +60,12 @@ def data_process(File_type, File_num):
     if(SG_k != 0 | SG_window != 0):
         data_array = signal.savgol_filter(data_array, SG_window, SG_k)
         
-    for i in range(0, len(bpass)):
-        data_array[i] = pt.band_pass_filter(data_array[i])
+ #   for i in range(0, len(bpass)):
+  #      data_array[i] = pt.band_pass_filter(data_array[i])
 
-#对数据进行基线漂移处理
+    #对数据进行基线漂移处理
     data_array = deal_base_line(data_array)
+
     file = sheet[File_num]
 
     return  file,data_array
@@ -96,8 +100,9 @@ def plot_DEO(File_type, File_num, Channel):
     使用带通滤波对每个导联数据进行处理
     
     '''
-    name, bpass = data_process(File_type, File_num)
-    data_DEO(name, bpass, Channel)
+    name, data_array = data_process(File_type, File_num)
+
+    data_DEO(name, data_array, Channel)
 
 #巴沃特斯滤波器，暂时用不到
 def Butter_band_pass(unfiltered_ecg_signal, fs):
@@ -112,16 +117,27 @@ def Butter_band_pass(unfiltered_ecg_signal, fs):
 #绘制寻找并R峰函数
 def plot_R_peak(File_type, File_num, Channel):
     __file_name__, data = data_process(File_type, File_num)#获取文件名和文件12导联数据
+    data = data_reverse(data)
+    ST_type = Get_type(__file_name__)
+
+    if((Channel+1) % 2 != 0):
+        row = (Channel)
+    else:
+        row = (Channel+1)
+
     for i in range(0, Channel):
         mwin[i] = pt.solve(data[i])
         hr = pt.heart_rate(data[i], fs, mwin[i])
         result = hr.find_r_peaks()
         result = np.array(result)
         result = result[result > 0]
-        plt.subplot(6,2,i+1)
+
+        plt.subplot(int(row/2),2,i+1)
         # Plotting the R peak locations in ECG signal
         plt.plot(data[i], linewidth = ld)        
+        plt.title(__file_name__ + '  channel %d ' %(i+1) + ST_type)
         plt.scatter(result, data[i][result.astype('int64')], color = 'red', s = 50, marker= '*')
+        plt.subplots_adjust(hspace = 1)     #设置每个图像之间的间距
         plt.xlim(xfrom, xend)
 
 def normalize(data):
@@ -139,3 +155,26 @@ def deal_base_line(data_array):
         ecg4[i] = ecg1[i] - ecg3[i]
 
     return ecg4
+
+def data_reverse(data):
+    for i in range(0, 12):
+        max_num = 0
+        min_num = 0
+
+        max_num = max(data[i])
+        min_num = max(abs(data[i]))
+        if(max_num < min_num):
+            data[i] = -data[i]
+    return data
+
+def get_R_loca(File_type, File_num):
+    __file_name__, data = data_process(File_type, File_num)#获取文件名和文件12导联数据
+    data = data_reverse(data)
+    ST_type = Get_type(__file_name__)
+
+    win = pt.solve(data[daolian])
+    hr = pt.heart_rate(data[daolian], fs, win)
+    result = hr.find_r_peaks()
+    result = np.array(result)
+    result = result[result > 0]
+    return data[daolian] , result

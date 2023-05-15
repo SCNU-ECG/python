@@ -143,6 +143,7 @@ def solve(signal):
     global der
     der = derivative(bpass.copy())
     # Squaring Function
+    
     global sqr
     sqr = squaring(der.copy())
     # Moving Window Integration Function
