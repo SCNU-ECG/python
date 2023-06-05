@@ -42,8 +42,8 @@ def band_pass_filter(signal):
       if (index >= 32):
         result[index] += sig[index-32]
     # Normalize the result from the high pass filter
-    max_val = max((max(result)),(-min(result)))
-    result = result/max_val
+
+
     return result
 
 def derivative(signal):

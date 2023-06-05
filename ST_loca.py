@@ -1,5 +1,5 @@
 import prcess_plot as pplt
-
+import numpy as np
 
 
 R_QQ_span = 55          #距离R峰前N个采样点作为Q段开始点
@@ -22,6 +22,8 @@ def basic_line_st(File_type, File_num, daolian):
 
     data , loca = pplt.get_R_loca(File_type, File_num)
     for i in range(3):                      #取中间的R峰算起往后，共3个R峰
+        if(len(loca) == 0):
+            break
         num_R = loca[(int(len(loca)/2)) + i]  #中间的R峰的位置
         
         #确定基线以及ST段的开始位置
@@ -30,6 +32,8 @@ def basic_line_st(File_type, File_num, daolian):
 
         #根据设定的采样数从开始进行数据累加
         for i in range(0, QQ_span):
+            if(abs(data[QQ_start + i]) > 0.1):  
+                data[QQ_start + i] = 0
             Q_line = Q_line + data[QQ_start + i]
 
         for i in range(0, ST_span):
@@ -41,9 +45,37 @@ def basic_line_st(File_type, File_num, daolian):
 
 
     if(ST_line < Q_line):
-        print("This is STD:","Q_line = {}, ST_line = {}".format(Q_line,ST_line))
+        print("This is STD:","Q_line = {}, ST_line = {}, 差值 = {}".format(Q_line,ST_line, abs(Q_line - ST_line)))
     elif(ST_line == Q_line ==0):
         print("All is 0")
     else:
-        print("This is STE:","Q_line = {}, ST_line = {}".format(Q_line,ST_line))
+        print("This is STD:","Q_line = {}, ST_line = {}, 差值 = {}".format(Q_line,ST_line, abs(Q_line - ST_line)))
     return Q_line, ST_line
+
+# def ST_line_judge(File_type, File_num):
+#     STE_count = 0
+#     STD_count = 0
+#     for i in range(12):
+#         Q_line, ST_line = basic_line_st(File_type, File_num, i)
+#         if(ST_line )
+
+def extract_ST_feature(File_type, File_num, Channel):
+    pplt.daolian = Channel
+
+    data, local = pplt.get_R_loca(File_type, File_num)
+
+    st_segments = []
+    slopes = []
+    for i in range((int(len(local)/2 - 1)), (int(len(local)/2)) + 3):
+        r_peak = local[i]
+        #确定ST段的开始位置
+        ST_start = int(r_peak + R_ST_span)
+        ST_end   = int(ST_start + ST_span)
+        #ST段形状数据
+        st_segment = data[ST_start:ST_end]
+        st_segments.append(st_segment)
+        #计算ST段斜率
+        slope = np.mean(np.diff(st_segment))
+        slopes.append(slope)
+
+    return np.sum(st_segments), np.mean(slopes)
