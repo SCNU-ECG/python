@@ -52,7 +52,7 @@ def basic_line_st(File_type, File_num, daolian):
     #     print("All is 0")
     # else:
     #     print("This is STD:","Q_line = {}, ST_line = {}, 差值 = {}".format(Q_line,ST_line, abs(Q_line - ST_line)))
-    return Q_line, ST_line, warn
+    return Q_line, ST_line, data, loca, warn
 
 # def ST_line_judge(File_type, File_num):
 #     STE_count = 0
@@ -79,5 +79,4 @@ def extract_ST_feature(File_type, File_num, Channel):
         #计算ST段斜率
         slope = np.mean(np.diff(st_segment))
         slopes.append(slope)
-
     return np.sum(st_segments), np.mean(slopes)

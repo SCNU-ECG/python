@@ -42,11 +42,11 @@ def Get_type_int(File_type, File_num):
     file = sheet[File_num]
     # 定位文件名为file_name的内容
     result = xlsx.loc[xlsx['name'] == file]
-    if (int(result['STE']) == 1) & (int(result['STD']) == 0):
+    if (int(result['STD']) == 1) and (int(result['STE']) == 0):
         num = 1
-    elif (int(result['STE']) == 0) & (int(result['STD']) == 1):
+    elif (int(result['STD']) == 0) and (int(result['STE']) == 1):
         num = 2
-    elif (int(result['STE']) == 1) & (int(result['STD']) == 1):
+    elif (int(result['STD']) == 1) and (int(result['STE']) == 1):
         num = 3
     elif int(result['Others']) == 1:
         num = 0
