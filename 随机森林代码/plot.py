@@ -11,7 +11,7 @@ a = 'STD'; b = 'STE'; c = 'Others'; d = 'DE'
 name = Get.Get_type_int(a, 12)
 print(name)
 plt.figure(2)
-pplt.plot_DEO(d, 106, 12)
+pplt.plot_DEO(a, 16, 12)
 plt.show()
 '''
 

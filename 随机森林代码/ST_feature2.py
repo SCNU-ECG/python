@@ -14,7 +14,6 @@ def extract_ST_feature_02(File_type, File_num):
     for Channel in range(0, 12):
         pplt.daolian = Channel
         ST_line = 0
-        warn = 0
         data, local = pplt.get_R_loca(File_type, File_num)
         local = np.array(local)
         for i in range(3):  # 取中间的R峰算起往后，共3个R峰
@@ -40,11 +39,11 @@ def extract_ST_feature_02(File_type, File_num):
             st_segment = data[ST_start:ST_end:5]
             slope = np.sum(st_segment)
             slope = slope - ST_line*(int(len(st_segment)))
-            if File_type == 'a':
+            if File_type == 'STD':
                 slope_sum = max(slope_sum, slope)
-            elif File_type == 'b':
+            elif File_type == 'STE':
                 slope_sum = min(slope_sum, slope)
-            elif File_type == 'c':
+            elif File_type == 'DE':
                 slope_sum = max(slope_sum, slope)
         # 把每个导联的计算结果加入到数组中
         slopes.append(slope_sum)
