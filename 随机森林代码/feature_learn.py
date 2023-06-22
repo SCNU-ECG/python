@@ -14,7 +14,7 @@ a = 'STD'; b = 'STE'; c = 'Others'; d = 'DE';
 def get_feature(File_type,index_max,index_min):
     for index in range(index_min, index_max):
         print(index)
-        data_01, warn = fea02.extract_ST_feature_02(File_type, index)
+        data_01, warn = fea02.extract_ST_feature(File_type, index)
         if warn >= 8:
             print('AAA')
         else:

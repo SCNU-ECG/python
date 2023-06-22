@@ -19,8 +19,6 @@ def extract_ST_feature(File_type, File_num):
         start = time.time()
         data, local = pplt.get_R_loca(File_type, File_num, data_temp)
         end = time.time()
-        if len(local) > 25:
-            print('心率超过100')
         elapsed_time += (end-start)
         local = np.array(local)
         for i in range(3):  # 取中间的R峰算起往后，共3个R峰
@@ -41,9 +39,12 @@ def extract_ST_feature(File_type, File_num):
         area_sum_max, area_sum_min, slope_max, slope_min, peak_max, peak_min,curvature_max = 0, 0, 0, 0, 0, 0,0
         for i in range(0, int(len(local))):
             r_peak = local[i]
-            # 确定ST段的起始位置和结束位置，目前是固定长度，未来改成动态测量
-            ST_start = int(r_peak + R_ST_span)
-            ST_end   = int(ST_start + ST_span)
+            possible = r_peak + 30
+            for i in possible:
+                # 确定ST段的起始位置和结束位置，目前是固定长度，未来改成动态测量
+                ST_start = 
+                ST_end   =
+            print(ST_start,ST_end)
             if ST_start <= 1500 and ST_end <= 1500:
                 # 计算ST段面积
                 st_segment = data[ST_start:ST_end]
@@ -58,10 +59,10 @@ def extract_ST_feature(File_type, File_num):
                 peak_max = max(np.max(st_segment), peak_max)
                 peak_min = min(np.min(st_segment), peak_min)
                 # 计算ST段曲率
-                # dx = np.gradient(st_segment)
-                # ddx = np.gradient(dx)
-                # curvature = ddx / (1 + dx ** 2) ** 1.5
-                # curvature_max = max(curvature)
+                dx = np.gradient(st_segment)
+                ddx = np.gradient(dx)
+                curvature = ddx / (1 + dx ** 2) ** 1.5
+                curvature_max = max(curvature)
             # 把每个导联的计算结果加入到数组中
         feature_data.append(area_sum_max)
         feature_data.append(area_sum_min)
@@ -69,6 +70,6 @@ def extract_ST_feature(File_type, File_num):
         feature_data.append(slope_min)
         feature_data.append(peak_max)
         feature_data.append(peak_min)
-        # feature_data.append(curvature_max)
+        feature_data.append(curvature_max)
     print("程序执行时间为：", elapsed_time, "秒")
     return feature_data, warn

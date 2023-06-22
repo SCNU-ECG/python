@@ -49,11 +49,11 @@ def data_process(File_type, File_num):
     #读取文件名字
     sheet = Get_name(File_type)
     #设置sheet中第i个mat文件作为读取文件
-    file = "..\\data_set\\"+sheet[File_num]
+    file = "..\\Train\\"+sheet[File_num]
     data_mat = sio.loadmat(file)#读取mat文件中的数据
-
+    step = 5
     data_array =(data_mat['ecg']) #将数据中的ecg数据12导联导出
-
+    data_array = data_array[:,::step]
     #使用Savitzky-Golay 滤波器实现曲线平滑
     # k值6对大，越接近真实曲线，越小越平滑。
     #window_length值50为数据缓存长度，越小越贴近原曲线，越大越平滑
@@ -167,14 +167,14 @@ def data_reverse(data):
             data[i] = -data[i]
     return data
 
-def get_R_loca(File_type, File_num):
-    __file_name__, data = data_process(File_type, File_num)#获取文件名和文件12导联数据
-    data = data_reverse(data)
-    ST_type = Get_type(__file_name__)
-
+def get_R_loca(File_type, File_num, data):
     win = pt.solve(data[daolian])
     hr = pt.heart_rate(data[daolian], fs, win)
     result = hr.find_r_peaks()
     result = np.array(result)
     result = result[result > 0]
     return data[daolian] , result
+
+def curvature_data(data):
+    print('一眼顶针')
+    
